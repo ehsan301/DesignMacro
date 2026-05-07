@@ -1,0 +1,553 @@
+setup form !!myDesignMacro SIZE 45 35 dialog dock RIGHT
+!this.formTitle = |My Design Macro|
+!this.initcall = |!this.init()|
+-----------------------------------------------------------------------------------
+-- This Macro is made by Ehsan Rafat at 2026/04. This version is not for public use
+-- and I mostly tried to rewrite and improve an old design macro using PML 2 for My
+-- training purpose and personal use.
+-----------------------------------------------------------------------------------
+
+  -- Define tracking for relevant modules
+  track    |PADDCE| call |!this.query()|
+  track    |DESICE| call |!this.query()|
+  track    |CATACE| call |!this.query()|
+  track    |ISODCE| call |!this.query()|
+  track    |SCHECE| call |!this.query()|
+  track    |PROPCE| call |!this.query()|
+  track    |MANUCE| call |!this.query()|
+  track	   |SYSTCE| call |!this.query()|
+  track	   |GLOBCE| call |!this.query()|
+
+frame .mainFrame |Design Macro V 0.1 by Ehsan Rafat| at x 0 y 0 dock fill
+-----------------Main Frame Tools----------------------
+	frame .forwBackwFrame at xmin ymin - 0.2 width 46
+	
+		rToggle .forwTog |Forw| tagwid 4 at xmin ymin call |FORWARD|
+		rToggle .backTog |Backw| tagwid 5 at xmax ymin call |BACKWARD|
+		button .getButton |GETWORK| hei 1 at xmax + 1 ymin.backTog backg 98 tooltip 'Get Work' call |GETWORK|
+		button .saveButton |SAVE| hei 1 at xmax ymin.getButton backg lightblue tooltip 'Save Work' call |SAVEWORK|
+		button .unclaimButton |UNCLAIM| hei 1 at xmax ymin.getButton backg 67 tooltip 'Save & Unclaim All' call |SAVEWORK 
+		unclaim ALL 
+		savework|
+		
+		button .prevButton |<<| hei 1 at x 0 ymax backg 98 tooltip 'Previous Item' call |PRE|
+		button .reselectButton |RESEL| hei 1 at xmax ymin backg 228 tooltip 'Reselect component (Choose All)' call |CHOO ALL|
+		button .nextButton |>>| hei 1 at xmax ymin backg 98 tooltip 'Next Item' call |NEX|
+		button .idButton |↗| hei 1 width 4 at xmax ymin backg lightblue tooltip 'ID@' call |ID@|
+		button .zoomButton |ZOOM CE| hei 1 at xmax ymin backg wheat tooltip 'Zoom to Selection' call |!!zoomToPipeElement(!!ce)|
+		button .centerButton |CENTR CE| hei 1 at xmax ymin backg 208 tooltip 'Centre on CE' call |!!gphViews.rotate(!!GPH3DDESIGN1.view, !!CE.position)|
+		
+		para .logoButton at xmax.unclaimButton  ymin.unclaimButton - 0.18 pixmap wid 4 hei 1.9
+		!this.logoButton.addPixmap(|%PMLLIB%\DesignMacro\Logo.png|)
+		
+	exit
+	--------------Plan/Look/Move View Frame------------
+	frame .planViewFrame at x 0 ymax.centerButton - 0.1 width 44
+		rToggle .planTog |Plan| tagwid 3 at xmin ymin call |!this.inactiveButtonView(1)|
+		rToggle .lookTog |Look| tagwid 4 at xmax ymin call |!this.inactiveButtonView(2)|
+		rToggle .moveTog |Move| tagwid 4 at xmax ymin call |!this.inactiveButtonView(2)|
+		text .moveCust at xmax + 0.5 ymin + 0.1 width 8 is REAL
+		
+		button .viewN |N| width 2 hei 1 at xmax + 0.5 ymin.moveTog backg 88 tooltip 'North' call '!this.planViewMethod(|N|)'
+		button .viewS |S| width 2 hei 1 at xmax ymin backg ivory tooltip 'South' call '!this.planViewMethod(|S|)'
+		button .viewE |E| width 2 hei 1 at xmax ymin backg 28 tooltip 'East' call '!this.planViewMethod(|E|)'
+		button .viewW |W| width 2 hei 1 at xmax ymin backg lightblue tooltip 'West' call '!this.planViewMethod(|W|)'
+		button .viewU |U| width 2 hei 1 at xmax ymin backg LightGold tooltip 'Up' call '!this.planViewMethod(|U|)'
+		button .viewD |D| width 2 hei 1 at xmax ymin tooltip 'Down' call '!this.planViewMethod(|D|)'
+	exit
+
+---------------------Piping Tools----------------------
+	frame .pipingFoldup foldup 'PIPING TOOLS' at x 0 ymax + 0.1 width.forwBackwFrame
+		frame .pipingTabset TABSET  'tabset' at x -1 ymax - 0.2 width.pipingFoldup - 1 
+			frame .pipingCompTab |Piping Component| at x 0 y 0  
+				button .conn |CONN| hei 1 at x 0 ymax backg 158 tooltip 'Connect' call |CONN|
+				button .nextCon |NXCO| hei 1 at xmax ymin backg lightblue tooltip 'Next Connect' call |NEX CONN|
+				button .nextThroCE |NTCE| hei 1 at xmax ymin backg LightGold tooltip 'Next Thro CE' call |NEX THRO CE|
+				button .throCE |CE| hei 1 width.conn at xmax ymin backg violet tooltip 'Thro CE' call |THRO CE|
+				button .throNext |NX| hei 1 width.conn at xmax ymin backg 88 tooltip 'Thro Next' call |THRO NEX|
+				button .throID |ID| hei 1 width.conn at xmax ymin backg wheat tooltip 'Thro ID@' call |THRO ID@| 
+				button .throIDP |IDP| hei 1 width.conn at xmax ymin backg 208 tooltip 'Thro ID Point' call |THRO IDP$@| $* fix pur
+				
+				---------------------------------------
+				
+				button .Fconn |FCON| hei 1 at x 0 ymax backg 27 tooltip 'Force Connect' call |FCONN|
+				button .nextFconn |NFCN| hei 1 at xmax ymin backg 257 tooltip 'Next Force Connect' call |NEX FCONN|
+				button .ktButton |KT| width.conn hei 1 at xmax  ymin backg 88 tooltip 'FORWARD THRO CE BACKWARD THRO CE' call |!this.ktMethod()|
+				button .dtnButton |DTN| width.conn hei 1 at xmax ymin backg 70 tooltip 'Direction Toward Next' call |DIR TOW NEX|
+				button .oriButton |ORI| width.conn hei 1 at xmax ymin backg 48 tooltip 'ORI' call |ORI|
+				button .flipButton |FLIP| width.conn hei 1 at xmax ymin backg 88 tooltip 'Flip' call |CALLP MROTATE FLIP|
+				button .sbopButton |SBOP| width.conn hei 1 at xmax ymin backg ivory tooltip 'Same BOP to other pipe' call |!this.sbopMethod()|
+				
+				---------------------------------------
+				
+				para .dirPara at x 0 ymax + 0.2 text |    DIR|  hei 1 width.conn
+				button .dirN |N| width 2 hei 1 at xmax ymin backg 88 tooltip 'Direction toward North' call |DIR N|
+				button .dirS |S| width 2 hei 1 at xmax ymin backg ivory tooltip 'Direction toward South' call |DIR S|
+				button .dirE |E| width 2 hei 1 at xmax ymin backg 28 tooltip 'Direction toward East' call |DIR E|
+				button .dirW |W| width 2 hei 1 at xmax ymin backg lightblue tooltip 'Direction toward West' call |DIR W|
+				button .dirU |U| width 2 hei 1 at xmax ymin backg LightGold tooltip 'Direction toward Up' call |DIR U|
+				button .dirD |D| width 2 hei 1 at xmax ymin tooltip 'Direction toward Down' call |DIR D|
+				
+				-------------Head Tail Connect---------
+				
+				option .headTailOpt at xmax.oriButton + 2 ymin call |!this.headTailMethod()| width 7
+				para .headTailPara at xmin.oriButton  + 1 ymin text |Head/Tail| hei 1
+				
+				--------Spool / Dist / Move / BOP------
+				frame .spoolFrame at x -2 ymax width 44
+					button .spool0 |0| width 3 at x 0 ymin hei 1 call |!this.spoolMethod(0)|
+					button .spool100 |100| width 3 at xmax ymin hei 1 call |!this.spoolMethod(100)|
+					button .spool150 |150| width 3 at xmax ymin hei 1 call |!this.spoolMethod(150)|
+					button .spool200 |200| width 3 at x 0 ymax hei 1 call |!this.spoolMethod(200)|
+					button .spool300 |300| width 3 at xmax ymin hei 1 call |!this.spoolMethod(300)|
+					button .spool500 |500| width 3 at xmax ymin hei 1 call |!this.spoolMethod(500)|
+					
+					text .spoolCust1 at xmax.spool150 + 0.5 ymin.spool150 + 0.1 width 5 is REAL
+					button .spoolCust1butt || width 1.2 at xmax ymin.spoolCust1 call |!this.spoolMethod(!this.spoolCust1.val)|
+					text .spoolCust2 at xmax.spool500 + 0.5 ymin.spool500 + 0.1 width 5 is REAL
+					button .spoolCust2butt || width 1.2 at xmax ymin.spoolCust2 call |!this.spoolMethod(!this.spoolCust2.val)|
+					
+					text .spoolCust3 at xmax.spoolCust1butt + 0.5 ymin.spool150 + 0.1 width 5 is REAL
+					button .spoolCust3butt || width 1.2 at xmax ymin.spoolCust3 call |!this.spoolMethod(!this.spoolCust3.val)|
+					text .spoolCust4 at xmax.spoolCust2butt + 0.5 ymin.spool500 + 0.1 width 5 is REAL
+					button .spoolCust4butt || width 1.2 at xmax ymin.spoolCust4 call |!this.spoolMethod(!this.spoolCust4.val)|
+					--- Nice Butt...on!
+					rToggle .spoolSelector |SPOOL| tagwid 5 at xmax.spoolCust3butt + 1 ymin.spoolCust3butt
+					rToggle .distSelector |DIST| tagwid 4 at xmax + 0.5 ymin
+					rToggle .moveSelector |MOVE| tagwid 5 at xmax.spoolCust4butt + 1 ymin.spoolCust4butt
+					rToggle .bopSelector |BOP| tagwid 4 at xmax + 0.5 ymin
+				--exit
+				
+				--frame .rotateFrame at x -2 ymax.spoolFrame - 0.5 width.spoolFrame
+					para .rotatePara at x0 ymax + 0.2 text |ROTATE:| hei 1
+					--button .rotate1 |1°| width 3 at xmin.spool5 ymin call ||
+					--button .rotate5 |5°| width 3 at xmax ymin call ||
+					button .rotate5 |5°| width 3 at xmax.spool300 ymin hei 1 call |CALLP MROTATE 5|
+					button .rotate30 |30°| width 3 at xmax ymin hei 1 call |CALLP MROTATE 30|
+					button .rotate45 |45°| width 3 at xmax ymin hei 1 call |CALLP MROTATE 45|
+					button .rotate60 |60°| width 3 at xmax ymin hei 1 call |CALLP MROTATE 60|
+					button .rotate90 |90°| width 3 at xmax ymin hei 1 call |CALLP MROTATE 90|
+					button .rotate180 |180°| width 3 at xmax ymin hei 1 call |CALLP MROTATE 180|
+					--button .rotate270 |270°| width 3 at xmax ymin call ||
+					-- Again, I couldn't make the PML2 to work here so I used PML1
+					text _VANGL at xmax + 0.5 ymin + 0.1 width 4 string
+					button .rotatePlusbutt |+| width 1.5 at xmax ymin.rotate180 hei 1 call |CALLP MROTATE $$_VANGL|
+					button .rotateMinusbutt |-| width 1.5 at xmax ymin.rotate180 hei 1 call |CALLP MROTATE -$$_VANGL|
+					
+				exit
+				-------------Create Component----------
+				
+				para .createCompPara at x 0 ymax  text |    CREATE COMPONENTS:|
+				button .createELBO |ELBO| width.conn hei 1 at x 0 ymax tooltip 'Create Elbow' call '!this.createComponent(|ELBO|)'
+				button .createTEE |TEE| width.conn hei 1 at xmax ymin tooltip 'Create TEE' call '!this.createComponent(|TEE|)'
+				button .createREDU |REDU| width.conn hei 1 at xmax ymin tooltip 'Create REDU' call '!this.createComponent(|REDU|)'
+				button .createFLAN |FLAN| width.conn hei 1 at xmax ymin tooltip 'Create FLAN' call '!this.createComponent(|FLAN|)'
+				button .createGASK |GASK| width.conn hei 1 at xmax ymin tooltip 'Create GASK' call '!this.createComponent(|GASK|)'
+				button .createVALV |VALV| width.conn hei 1 at xmax ymin tooltip 'Create VALV' call '!this.createComponent(|VALV|)'
+				button .createCLOS |CLOS| width.conn hei 1 at xmax ymin tooltip 'Create CLOS' call '!this.createComponent(|CLOS|)'
+				
+				button .createTRAP |TRAP| width.conn hei 1 at x 0 ymax tooltip 'Create TRAP' call '!this.createComponent(|TRAP|)'
+				button .createCAP |CAP| width.conn hei 1 at xmax ymin tooltip 'Create CAP' call '!this.createComponent(|CAP|)'
+				button .createCOUP |COUP| width.conn hei 1 at xmax ymin tooltip 'Create COUP' call '!this.createComponent(|COUP|)'
+				button .createFBLI |FBLI| width.conn hei 1 at xmax ymin tooltip 'Create FBLI' call '!this.createComponent(|FBLI|)'
+				button .createPCOM |PCOM| width.conn hei 1 at xmax ymin tooltip 'Create PCOM' call '!this.createComponent(|PCOM|)'
+				button .createFILT |FILT| width.conn hei 1 at xmax ymin tooltip 'Create FILT' call '!this.createComponent(|FILT|)'
+				button .createATTA |ATTA| width.conn hei 1 at xmax ymin tooltip 'Create ATTA' call '!this.createComponent(|ATTA|)'
+				
+				button .createINST |INST| width.conn hei 1 at x 0 ymax tooltip 'Create INST' call '!this.createComponent(|INST|)'
+				button .createUNIO |UNIO| width.conn hei 1 at xmax ymin tooltip 'Create UNIO' call '!this.createComponent(|UNIO|)'
+				button .createFTUB |FTUB| width.conn hei 1 at xmax ymin tooltip 'Create FTUB' call '!this.createComponent(|FTUB|)'
+				button .createBEND |BEND| width.conn hei 1 at xmax ymin tooltip 'Create BEND' call '!this.createComponent(|BEND|)'
+				button .createOLET |OLET| width.conn hei 1 at xmax ymin tooltip 'Create OLET' call '!this.createComponent(|OLET|)'
+				button .createVTWA |VTWA| width.conn hei 1 at xmax ymin tooltip 'Create VTWA' call '!this.createComponent(|VTWA|)'
+				button .createVTFA |VTFA| width.conn hei 1 at xmax ymin tooltip 'Create VTFA' call '!this.createComponent(|VTFA|)'
+			exit
+		exit
+	exit
+
+---------------------Useful Tools----------------------	
+	frame .usefulFoldup foldup 'USEFUL TOOLS' at x0 ymax + 0.1 width.forwBackwFrame
+		frame .usefulTabset TABSET  'tabset' at x -1 ymax -0.2 width.pipingFoldup - 1
+		frame .attTab |Attributes| at x 0 y 0
+			toggle    .lock         'Track current element' at x0.5   ymax callback '!this.lock()'
+			list      .attributes  anchor left + top + right + bottom at x0.5 ymax columns height 7 width.pipingFoldup - 4	
+		exit
+		exit
+	exit
+exit
+ 
+    -- Form Variables
+  -- Current Element
+  member .element     is DBREF
+
+  -- Current attribute query shown
+  member .current     is DBREF
+
+  -- Current Header State
+  member .headerState is ARRAY
+
+  -- Locked
+  member .tracking    is BOOLEAN
+
+  -- Header
+  member .header      is STRING
+
+  -- Data Table
+  member .dataTable   is ARRAY
+
+  -- Ship Reference Grid Set
+  member .shipGrid    is BOOLEAN
+
+  -- Register from
+  !!appFormCntrl.registerForm(!this) 
+exit
+-----------------------Methods-------------------------
+define method .myDesignMacro()
+
+  -- Initialise Variables
+  !this.tracking    = true
+  !this.lock.val    = !this.tracking
+
+  -- Check if distance format has been declared
+  if(undefined(!!distanceFmt)) then
+    !!comDefineGlobal(object COMFORMATS())
+  endif
+
+
+endmethod
+
+--------------------Init() Method----------------------
+define method .init()
+
+---- Initialize headTailOpt
+!dtext[1] = |Head to First|
+!dtext[2] = |Head to ID@|
+!dtext[3] = |Head to Branch Tail|
+!dtext[4] = |Head to Branch Head|
+!dtext[5] = |Head to Multiway|
+!dtext[6] = |Tail to Last|
+!dtext[7] = |Tail to ID@|
+!dtext[8] = |Tail to Branch Tail|
+!dtext[9] = |Tail to Branch Head|
+!dtext[10] = |Tail to Multiway|
+
+!rtext[1] = |BRAN CONN PH TO FIRST MEM|
+!rtext[2] = |BRAN CONN PH TO ID@|
+!rtext[3] = |BRAN CONN PH TO PT OF ID BRAN @|
+!rtext[4] = |BRAN CONN PH TO PH OF ID BRAN @|
+!rtext[5] = |BRAN CONN PH TO IDP@|
+!rtext[6] = |BRAN CONN PT TO LAST MEM|
+!rtext[7] = |BRAN CONN PT TO ID@|
+!rtext[8] = |BRAN CONN PT TO PT OF ID BRAN @|
+!rtext[9] = |BRAN CONN PT TO PH OF ID BRAN @|
+!rtext[10] = |BRAN CONN PT TO IDP@|
+
+!this.headTailOpt.dtext = !dtext
+!this.headTailOpt.rtext = !rtext
+
+---- Initialize MODE (Forward Backward)
+--for some reason if I use PML2 !MODE = MODE it doesn't work
+VAR !MODE  MODE
+if !MODE EQ |Forwards| then
+	!this.forwBackwFrame.val = 1
+elseif !MODE EQ |Backwards| then
+	!this.forwBackwFrame.val = 2
+endif
+
+---- Initialize spoolFrame
+!this.spoolFrame.val = 1
+
+---- Initialize planViewFrame
+!this.planViewFrame.val = 1
+!this.viewU.active = FALSE
+!this.viewD.active = FALSE
+
+---- Unfold piping TOOLS
+--!this.pipingFoldup.expanded = FALSE
+
+
+endmethod
+
+------------------------------------------------------------------------
+
+define method .lock()
+
+  -- Set tracking flag
+  !this.tracking  = !this.lock.val
+
+  -- If tracking and at a different element
+  if(!this.tracking and !!ce ne !this.element) then
+    !this.query(!!ce)
+  endif
+
+endmethod
+------------------------------------------------------------------------
+
+define method .query()
+
+  -- Handle delete element
+  if(badRef(!this.element)) then
+    !this.element = object DBREF()
+  endif
+
+  -- Handle delete element
+  if(badRef(!this.current)) then
+    !this.current = object DBREF()
+  endif
+
+  -- Display query information
+  if(!this.tracking or !this.element.unset() or !this.element ne !this.current) then
+    !this.query(!!ce)
+  endif
+
+endmethod
+------------------------------------------------------------------------
+
+define method .query(!element is DBREF)
+  -- Initialise Variables
+  !this.element   = !element
+  
+  if TYPE OF OWNER EQ |PIPE| OR TYPE OF OWNER EQ |BRAN| then
+	  !PIPE = PIPE
+	  !this.attributes.setHeadings(!!CE.NAMESQ + ' | LineNo: $!PIPE.NAMN')
+  else
+	!this.attributes.setHeadings(!!CE.NAMESQ)
+  endif
+  handle any
+     return
+  endhandle
+
+  !DVAL = ARRAY()
+  !this.attributes.dtext = !DVAL
+  if TYPE OF OWNER EQ |BRAN| AND TYPE NE |PTAP| THEN
+	
+	!DTXR = DTXR
+	handle any
+		!DTXR = ''
+	endhandle
+	!MTXX = MTXX
+	handle any
+		!MTXX = ''
+	endhandle
+	if !DTXR EQ '' AND !MTXX EQ '' then
+		!this.attributes.ADD(|No Description!!|)
+	else
+		!this.attributes.ADD(|$!DTXR| + ' ' + |$!MTXX|)
+	endif
+
+	!P1BOR = P1 BORE
+	handle (2,201)
+		!P1BOR = 'Unset'
+	endhandle
+	!P2BOR = P2 BORE
+	handle (2,201)
+		!P2BOR = 'Unset'
+	endhandle
+	!P3BOR = P3 BORE
+	handle (2,201)
+		!P3BOR = 'Unset'
+	endhandle
+	!P4BOR = P4 BORE
+	handle (2,201)
+		!P4BOR = 'Unset'
+	endhandle
+
+	if !P4BOR.STRING() EQ 'Unset' then
+		if !P3BOR.STRING() EQ 'Unset' then
+			if !P2BOR.STRING() EQ 'Unset' OR !P1BOR EQ !P2BOR then
+				!this.attributes.ADD('Size: ' + !P1BOR.STRING())
+			else 
+				!this.attributes.ADD('Size: ' + !P1BOR.STRING() + ' x ' + !P2BOR.STRING())
+			endif
+		elseif  !P1BOR EQ !P2BOR then
+			!this.attributes.ADD('Size: ' + !P1BOR.STRING() + ' x ' + !P3BOR.STRING())
+		else
+			!this.attributes.ADD('Size: ' + !P1BOR.STRING() + ' x ' + !P2BOR.STRING() + ' x ' + !P3BOR.STRING())
+		endif
+	else
+		!this.attributes.ADD('Size: ' + !P1BOR.STRING() + ' x ' + !P2BOR.STRING() + ' x ' + !P3BOR.STRING() + ' x ' + !P4BOR.STRING())
+	endif
+		
+	!ATLE = ATLE
+	!LTLE = LTLE
+	!this.attributes.ADD('ATLE: ' + !ATLE.STRING(!!REALFMT) + 'mm LTLE: ' + !LTLE.STRING(!!REALFMT) + 'mm')
+
+  elseif TYPE EQ |NOZZ| then
+	!P1BOR = P1 BORE
+	!P1CONN = P1 CONN
+	!this.attributes.ADD('Nozzle: ' + DESC OF CATE OF CATREF OF SPREF)
+	!this.attributes.ADD('Catref: ' + !!CE.CATREF.NAMN)
+	!this.attributes.ADD('Size: ' + !P1BOR.STRING() + '  Height: ' + !!CE.HEI.STRING() + '  ConnType: ' + !P1CONN.STRING())
+  endif
+
+endmethod
+-------------------------------------------------------
+define method .inactiveButtonView(!select is REAL)
+if !select EQ 1 then
+	!this.viewU.active = FALSE
+	--!this.viewU.BACKGROUND = 300
+	!this.viewD.active = FALSE
+elseif !select EQ 2 then
+	!this.viewU.active = TRUE
+	--!this.viewU.BACKGROUND = 'LightGold'
+	!this.viewD.active = TRUE
+endif
+endmethod
+-------------------Plan View Method--------------------
+define method .planViewMethod(!select is STRING)
+if !this.planViewFrame.val EQ 1 then
+	if !select EQ |N| then
+		!!gphViews.look(!!gph3Ddesign1.view,N90D)
+	elseif !select EQ |S| then
+		!!gphViews.look(!!gph3Ddesign1.view,S90D)
+	elseif !select EQ |E| then
+		!!gphViews.look(!!gph3Ddesign1.view,E90D)
+	elseif !select EQ |W| then
+		!!gphViews.look(!!gph3Ddesign1.view,W90D)
+	elseif !select EQ |U| then
+		!this.mainFrame.tag = 'Design Macro V 0.1 by Ehsan Rafat | | Nothing as Plan Up View!'
+	elseif !select EQ |D| then
+		!this.mainFrame.tag = 'Design Macro V 0.1 by Ehsan Rafat | | Nothing as Plan Down View!'
+	endif
+elseif !this.planViewFrame.val EQ 2 then
+	!!gphViews.look(!!gph3Ddesign1.view,$!select)
+elseif !this.planViewFrame.val EQ 3 then
+	BY $!select $!this.moveCust.val WRT/*
+endif
+
+endmethod
+
+-------------------Head Tail Method--------------------
+define method .headTailMethod()
+
+VAR !MODE MODE	
+IF (!MODE EQ |Forwards|) THEN
+	FORWARD
+	$!this.headTailOpt
+ELSEIF (!MODE EQ |Backwards|) THEN
+	FORWARD
+	$!this.headTailOpt
+	BACKWARD
+ENDIF
+
+endmethod
+
+---------------SPOOL / DIST / MOVE / BOP---------------
+define method .spoolMethod(!value is REAL)
+
+VAR !M MEM COUNT OF OWN
+VAR !MODE MODE
+
+!spoolMode = !this.spoolFrame.val
+if $!spoolMode EQ 1 then
+	IF (SEQ EQ 1 AND !MODE EQ |Forwards|) THEN
+		POS PA DIST $!value FROM PH
+	ELSEIF (SEQ EQ $!M AND !MODE EQ |Backwards|) THEN
+		POS PL DIST $!value FROM PT
+	ELSEIF (SEQ NE 1 AND !MODE EQ |Forwards|) THEN
+		POS PA DIST $!value FROM PL OF PREV
+	ELSEIF (SEQ NE $!M AND !MODE EQ |Backwards|) THEN
+		POS PL DIST $!value FROM PA OF PREV
+	ENDIF
+elseif !spoolMode EQ 2 then
+	DIST $!value
+elseif !spoolMode EQ 3 then
+	MOVE DIST $!value
+elseif !spoolMode EQ 4 then	
+	BOP $!value ONTO ID@
+endif
+
+endmethod
+
+---------------------SBOP Method-----------------------
+define method .sbopMethod()
+LABEL /BEGIN
+OWN
+VAR !OWN TYPE
+
+IF (|$!OWN| NEQ |BRAN|) THEN
+   RETURN ERROR 1 |You are not at a piping component.|
+ENDIF
+SAM
+!TYPE = TYPE OF CE
+
+!REF = REF OF ID@
+	!ABOP = ABOP OF $!REF
+	!LBOP = LBOP OF $!REF
+
+	!pos1 = !REF.pos.up
+	!Ldir = !REF.ldir.wrt(worl)
+	!Adir = !REF.Adir.wrt(worl)
+
+		!LDIRU = MATCHW(STRING (!LDIR), '*U*')
+		!ADIRU = MATCHW(STRING (!ADIR), '*U*')
+		!LDIRD = MATCHW(STRING (!LDIR), '*D*')
+		!ADIRD = MATCHW(STRING (!ADIR), '*D*')
+
+	IF $!ADIRU EQ TRUE OR $!ADIRD EQ TRUE THEN
+		!BOP = $!REF.LBOP
+			ELSEIF $!LDIRU EQ TRUE OR $!LDIRD EQ TRUE THEN
+			!BOP = $!REF.ABOP
+			ELSE
+		!BOP = $!REF.LBOP
+	ENDIF
+
+BOP ONTO U $!BOP.UP
+LABEL /END
+$.
+endmethod
+
+--------------------KT-Methods-------------------------
+define method .ktMethod()
+var !MODE MODE
+if (!MODE EQ |Forwards|) then
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+elseif (!MODE EQ |Backwards|) then
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+	FORWARD THRO CE
+	BACKWARD THRO CE
+endif
+endmethod
+
+--------------Create Component Methods-----------------
+define method .createComponent(!type is STRING)
+var !REFE REFE
+NEW $!type CHOOSE ALL
+
+handle (61,162) (61,163) (61,164) (61,165)
+	DELETE $!type
+	$!REFE
+   handle ANY
+   endhandle
+   return error
+ endhandle
+ 
+onerror return
+var !SPREF SPREF
+
+if(!SPREF eq |=0/0|) then
+	DELETE $!type
+	$!REFE
+else
+	CONN
+endif
+endmethod
